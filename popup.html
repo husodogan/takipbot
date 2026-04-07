@@ -374,7 +374,7 @@
             margin: 15px 0;
         }
 
-        /* ✅ Toggle Switch */
+        /* Toggle Switch */
         .toggle-switch {
             position: relative;
             width: 48px;
@@ -488,7 +488,11 @@
                     <div class="form-group">
                         <label>⏱️ Kontrol Aralığı</label>
                         <select id="checkInterval">
-                            <option value="15" selected>Her 15 dk</option>
+                            <option value="1">Her 1 dk ⚠️ Riskli</option>
+                            <option value="3">Her 3 dk ⚠️ Riskli</option>
+                            <option value="5">Her 5 dk ⚠️ Riskli</option>
+                            <option value="10">Her 10 dk</option>
+                            <option value="15" selected>Her 15 dk ✅ Önerilen</option>
                             <option value="20">Her 20 dk</option>
                             <option value="30">Her 30 dk</option>
                             <option value="45">Her 45 dk</option>
@@ -522,7 +526,7 @@
 
         <!-- ✅ AYARLAR BÖLÜMÜ -->
         <div id="settingsContainer" style="margin-bottom: 15px;">
-            <div class="section-title" style="cursor: pointer; user-select: none;" onclick="toggleSettings()">
+            <div class="section-title" style="cursor: pointer; user-select: none;" id="settingsToggle">
                 ⚙️ Ayarlar
                 <span id="settingsArrow" style="float: right; transition: transform 0.3s;">▼</span>
             </div>
