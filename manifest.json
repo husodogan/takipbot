@@ -1,50 +1,48 @@
 {
-    "manifest_version": 3,
-    "name": "Amazon Fiyat Takip ve Oto Sepet",
-    "version": "2.3",
-    "description": "Amazon.com.tr için fiyat takibi ve otomatik sipariş eklentisi",
-    "permissions": [
-        "storage",
-        "alarms",
-        "notifications",
-        "tabs",
-        "offscreen",
-        "scripting",
-        "activeTab"
-    ],
-    "host_permissions": [
-        "https://www.amazon.com.tr/*"
-    ],
-    "icons": {
-        "16": "icon.png",
-        "32": "icon.png",
-        "48": "icon.png",
-        "128": "icon.png"
-    },
-    "background": {
-        "service_worker": "background.js"
-    },
-    "content_scripts": [
-        {
-            "matches": ["https://www.amazon.com.tr/*"],
-            "js": ["content.js"],
-            "css": ["styles.css"],
-            "run_at": "document_end"
-        }
-    ],
-    "action": {
-        "default_popup": "popup.html",
-        "default_icon": {
-            "16": "icon.png",
-            "32": "icon.png",
-            "48": "icon.png",
-            "128": "icon.png"
-        }
-    },
-    "web_accessible_resources": [
-        {
-            "resources": ["icon.png", "icon.png", "icon.png", "icon.png"],
-            "matches": ["<all_urls>"]
-        }
-    ]
+  "manifest_version": 3,
+  "name": "Amazon Fiyat Takip ve Oto Sepet",
+  "version": "3.0",
+  "description": "Amazon.com.tr için sadeleştirilmiş fiyat takibi ve otomatik sipariş eklentisi",
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications",
+    "tabs",
+    "scripting",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "https://www.amazon.com.tr/*"
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.amazon.com.tr/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icon.png", "offscreen.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
