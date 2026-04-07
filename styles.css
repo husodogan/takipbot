@@ -1,0 +1,284 @@
+/* =============================================
+   AMAZON FİYAT TAKİP - STYLES (V2.1)
+   Amazon sayfasına gömülen buton ve paneller
+   ============================================= */
+
+/* ---- ANA KONTEYNER ---- */
+#at-track-container {
+    margin: 10px 0;
+    width: 100%;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.at-integrated-button-container {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+/* ---- ANA PANEL ---- */
+.at-panel {
+    background: #f3f3f3;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #FF9900;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- TAKİBE EKLE BUTONU ---- */
+.at-track-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+}
+
+.at-track-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+}
+
+.at-track-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.3);
+}
+
+/* ✅ YENİ: Takibe alındı durumu */
+.at-track-btn.added {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    cursor: default;
+}
+
+.at-track-btn.added:hover {
+    transform: none;
+}
+
+.at-track-btn span.star {
+    font-size: 16px;
+}
+
+/* ---- CHECKBOX SATIRI ---- */
+.at-checkbox-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    gap: 8px;
+}
+
+.at-checkbox-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #444;
+    background: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    flex: 1;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+    user-select: none;
+}
+
+.at-checkbox-label:hover {
+    background: #eef0ff;
+    border-color: #667eea;
+}
+
+/* ✅ YENİ: Checkbox işaretlenince */
+.at-checkbox-label input[type="checkbox"] {
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
+/* ---- BAŞARI MESAJI ---- */
+.at-success-msg {
+    color: #28a745;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 8px;
+    font-weight: bold;
+    padding: 5px;
+    background: #d4edda;
+    border-radius: 6px;
+    border: 1px solid #c3e6cb;
+    animation: at-fadeIn 0.4s ease;
+}
+
+/* ---- HATA MESAJI ---- */
+.at-error-msg {
+    color: #dc3545;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 8px;
+    font-weight: bold;
+    padding: 5px;
+    background: #f8d7da;
+    border-radius: 6px;
+    border: 1px solid #f5c6cb;
+    animation: at-fadeIn 0.4s ease;
+}
+
+/* ✅ YENİ: Mevcut fiyat göstergesi */
+.at-current-price {
+    text-align: center;
+    font-size: 13px;
+    color: #555;
+    margin-top: 8px;
+    padding: 6px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.at-current-price strong {
+    color: #e74c3c;
+    font-size: 15px;
+}
+
+/* ✅ YENİ: 2. El fiyat göstergesi */
+.at-used-price {
+    text-align: center;
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.at-used-price strong {
+    color: #6c757d;
+}
+
+/* ✅ YENİ: Varyant bilgisi */
+.at-variant-info {
+    font-size: 11px;
+    color: #667eea;
+    text-align: center;
+    margin-top: 5px;
+    padding: 4px;
+    background: #eef0ff;
+    border-radius: 5px;
+}
+
+/* ✅ YENİ: Loading animasyonu */
+.at-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+    margin-top: 8px;
+}
+
+.at-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #ddd;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: at-spin 0.8s linear infinite;
+}
+
+/* ✅ YENİ: Hedef fiyat input */
+.at-target-input-wrap {
+    margin-top: 10px;
+}
+
+.at-target-input-wrap label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.at-target-input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 7px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    background: white;
+}
+
+.at-target-input:focus {
+    border-color: #667eea;
+}
+
+/* ✅ YENİ: Önerilen fiyat çipleri */
+.at-price-suggestions {
+    display: flex;
+    gap: 5px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.at-price-chip {
+    font-size: 11px;
+    padding: 3px 8px;
+    background: #eef0ff;
+    border: 1px solid #667eea;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #667eea;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.at-price-chip:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* ---- ANİMASYONLAR ---- */
+@keyframes at-fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes at-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes at-pulse {
+    0%, 100% { box-shadow: 0 4px 10px rgba(255, 153, 0, 0.3); }
+    50%       { box-shadow: 0 4px 20px rgba(255, 153, 0, 0.6); }
+}
+
+/* ✅ YENİ: Panel açılış animasyonu */
+@keyframes at-slideDown {
+    from { opacity: 0; max-height: 0; }
+    to   { opacity: 1; max-height: 300px; }
+}
+
+.at-panel {
+    animation: at-fadeIn 0.4s ease;
+}
+
+/* ====== CONTENT SCRIPT ANİMASYONLARI ====== */
+@keyframes at-fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#at-track-container {
+    animation: at-fadeIn 0.4s ease;
+}

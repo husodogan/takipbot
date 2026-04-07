@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Amazon Takip</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            width: 450px; 
+            padding: 20px; 
+            font-family: 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: #333; 
+        }
+        
+        .container { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            max-height: 600px; 
+            overflow-y: auto; 
+        }
+
+        .container::-webkit-scrollbar { width: 6px; }
+        .container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .container::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+
+        h1 { 
+            font-size: 20px; 
+            color: #FF9900; 
+            margin-bottom: 20px; 
+            text-align: center; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+        }
+        .logo { width: 30px; height: 30px; }
+
+        .current-product { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            border: 2px solid #e9ecef; 
+        }
+
+        .product-info { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 12px; 
+            align-items: flex-start;
+        }
+
+        .product-image { 
+            width: 55px; 
+            height: 55px; 
+            object-fit: contain; 
+            border-radius: 5px; 
+            background: white; 
+            border: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .product-title-text { 
+            font-size: 12px; 
+            font-weight: bold; 
+            flex: 1; 
+            color: #333; 
+            line-height: 1.5; 
+        }
+
+        .current-price-display {
+            font-size: 13px;
+            color: #e74c3c;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .form-group { margin-bottom: 12px; }
+        
+        label { 
+            display: block; 
+            font-size: 13px; 
+            font-weight: 600; 
+            margin-bottom: 5px; 
+            color: #555; 
+        }
+        
+        input[type="number"],
+        select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 2px solid #e9ecef; 
+            border-radius: 8px; 
+            font-size: 14px;
+            transition: border-color 0.3s;
+            outline: none;
+            background: white;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #667eea;
+        }
+
+        .checkbox-row { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 12px;
+            align-items: stretch;
+        }
+
+        .checkbox-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            font-size: 12px; 
+            cursor: pointer;
+            padding: 8px 10px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            flex: 1;
+            justify-content: center;
+            transition: background 0.2s, border-color 0.2s;
+            user-select: none;
+            line-height: 1;
+        }
+
+        .checkbox-item:hover {
+            background: #eef0ff;
+            border-color: #667eea;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: #667eea;
+            flex-shrink: 0;
+            margin: 0;
+        }
+
+        .checkbox-item span {
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .tracked-product-item { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin-bottom: 12px; 
+            border-left: 5px solid #667eea; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s;
+        }
+
+        .tracked-product-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .tracked-product-item.triggered {
+            border-left-color: #ffd700;
+            background: #fffdf0;
+        }
+
+        .status-badges { margin: 8px 0; display: flex; flex-wrap: wrap; gap: 4px; }
+        
+        .status { 
+            display: inline-block; 
+            padding: 3px 8px; 
+            border-radius: 4px; 
+            font-size: 10px; 
+            font-weight: 700; 
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-used { background: #e2e3e5; color: #383d41; }
+        .status-auto { background: #fff3cd; color: #856404; }
+        .status-triggered { 
+            background: #ffd700; 
+            color: #000;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .edit-panel { 
+            display: none; 
+            margin-top: 12px; 
+            padding: 12px; 
+            border-top: 1px solid #ddd; 
+            background: white; 
+            border-radius: 8px; 
+        }
+
+        .edit-panel label {
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .edit-panel input[type="number"],
+        .edit-panel select {
+            margin-bottom: 8px;
+            font-size: 13px;
+            padding: 8px;
+        }
+
+        .edit-checkbox-row {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        .edit-checkbox-row label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            margin-bottom: 0;
+            font-size: 11px;
+            padding: 5px 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        .btn { 
+            padding: 10px 12px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: opacity 0.2s, transform 0.1s; 
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn:hover { opacity: 0.88; }
+        .btn:active { transform: scale(0.97); }
+
+        .btn-add { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            font-size: 14px; 
+            width: 100%;
+            padding: 13px;
+        }
+
+        .btn-edit { 
+            background: #667eea; 
+            flex: 1; 
+            font-size: 11px; 
+            padding: 7px; 
+        }
+
+        .btn-remove { 
+            background: #dc3545; 
+            flex: 1; 
+            font-size: 11px; 
+            padding: 7px; 
+        }
+
+        .btn-link {
+            background: #FF9900;
+            flex: 1;
+            font-size: 11px;
+            padding: 7px;
+            text-decoration: none;
+            line-height: 1.5;
+        }
+
+        .btn-save { 
+            background: #28a745; 
+            width: 100%;
+            padding: 9px; 
+            font-size: 12px;
+        }
+
+        .data-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .btn-export {
+            background: #17a2b8;
+            flex: 1;
+            font-size: 11px;
+            padding: 8px;
+        }
+
+        .btn-import {
+            background: #6c757d;
+            flex: 1;
+            font-size: 11px;
+            padding: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-import input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .empty-state { 
+            text-align: center; 
+            color: #999; 
+            padding: 30px 20px; 
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .empty-state span {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .price-info {
+            font-size: 12px;
+            margin: 8px 0;
+            padding: 6px 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        .last-checked {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 6px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #f0f0f0;
+            margin: 15px 0;
+        }
+
+        /* ✅ Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        @keyframes toastIn {
+            from { top: -40px; opacity: 0; }
+            to { top: 15px; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- BAŞLIK -->
+        <h1>
+            <svg class="logo" viewBox="0 0 100 100">
+                <path d="M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z" fill="#FF9900"/>
+                <text x="50" y="65" text-anchor="middle" fill="white" font-size="40" font-weight="bold">A</text>
+            </svg>
+            Amazon Takip
+        </h1>
+
+        <!-- MEVCUT ÜRÜN BÖLÜMÜ -->
+        <div id="currentProductSection" style="display: none;">
+            <div class="current-product">
+
+                <div class="product-info">
+                    <img id="productImage" class="product-image" src="" alt="Ürün">
+                    <div style="flex:1;">
+                        <div id="productTitle" class="product-title-text">Ürün Yükleniyor...</div>
+                        <div id="currentPriceDisplay" class="current-price-display"></div>
+                        <div id="usedPriceDisplay" style="font-size:11px; color:#666; margin-top:3px;"></div>
+                    </div>
+                </div>
+
+                <!-- Hedef Fiyat + Kontrol Aralığı -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>🎯 Hedef Fiyat (TL)</label>
+                        <input type="number" id="targetPrice" placeholder="Örn: 500" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>⏱️ Kontrol Aralığı</label>
+                        <select id="checkInterval">
+                            <option value="15" selected>Her 15 dk</option>
+                            <option value="20">Her 20 dk</option>
+                            <option value="30">Her 30 dk</option>
+                            <option value="45">Her 45 dk</option>
+                            <option value="60">Her 1 saat</option>
+                            <option value="120">Her 2 saat</option>
+                            <option value="180">Her 3 saat</option>
+                            <option value="360">Her 6 saat</option>
+                            <option value="720">Her 12 saat</option>
+                            <option value="1440">Her 24 saat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Checkboxlar -->
+                <div class="checkbox-row">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="checkUsed">
+                        <span>♻️ 2.El Dahil</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="checkAuto">
+                        <span>🤖 Oto Sipariş</span>
+                    </label>
+                </div>
+
+                <button id="addTrackBtn" class="btn btn-add">⭐ Takibe Başla</button>
+
+            </div>
+            <div class="divider"></div>
+        </div>
+
+        <!-- ✅ AYARLAR BÖLÜMÜ -->
+        <div id="settingsContainer" style="margin-bottom: 15px;">
+            <div class="section-title" style="cursor: pointer; user-select: none;" onclick="toggleSettings()">
+                ⚙️ Ayarlar
+                <span id="settingsArrow" style="float: right; transition: transform 0.3s;">▼</span>
+            </div>
+            
+            <div id="settingsPanel" style="display: none; background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 10px;">
+                
+                <!-- Gece Modu -->
+                <div style="margin-bottom: 12px;">
+                    <label style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 10px;
+                        background: white;
+                        border-radius: 8px;
+                        border: 2px solid #e9ecef;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    "
+                    onmouseover="this.style.borderColor='#667eea'"
+                    onmouseout="this.style.borderColor='#e9ecef'"
+                    >
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">🌙</span>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: #333;">Gece Modu</div>
+                                <div style="font-size: 10px; color: #666;">00:00 - 07:00 arası kontrol etme</div>
+                            </div>
+                        </div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="nightModeToggle" onchange="saveSettings()">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Günlük Limit -->
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: 600; color: #555; margin-bottom: 5px; display: block;">
+                        📊 Günlük Maksimum Kontrol Sayısı
+                    </label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input 
+                            type="range" 
+                            id="dailyLimitSlider" 
+                            min="20" 
+                            max="200" 
+                            value="80" 
+                            step="10"
+                            style="flex: 1;"
+                            oninput="updateDailyLimitLabel(); saveSettings()"
+                        >
+                        <span id="dailyLimitLabel" style="
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #667eea;
+                            min-width: 40px;
+                            text-align: right;
+                        ">80</span>
+                    </div>
+                    <div style="font-size: 10px; color: #999; margin-top: 3px;">
+                        ℹ️ Yüksek değer = ban riski artar
+                    </div>
+                </div>
+
+                <!-- Rastgele Gecikme -->
+                <div style="margin-bottom: 12px;">
+                    <label style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 10px;
+                        background: white;
+                        border-radius: 8px;
+                        border: 2px solid #e9ecef;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    "
+                    onmouseover="this.style.borderColor='#667eea'"
+                    onmouseout="this.style.borderColor='#e9ecef'"
+                    >
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">🎲</span>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: #333;">Rastgele Gecikme</div>
+                                <div style="font-size: 10px; color: #666;">10-40sn arası bekleme ekle</div>
+                            </div>
+                        </div>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="randomDelayToggle" checked onchange="saveSettings()">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- İstatistikler -->
+                <div style="
+                    background: white;
+                    border-radius: 8px;
+                    padding: 10px;
+                    border: 1px solid #e9ecef;
+                ">
+                    <div style="font-size: 11px; font-weight: 600; color: #555; margin-bottom: 8px;">
+                        📈 Bugünkü İstatistikler
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #666;">
+                        <span>Yapılan Kontrol:</span>
+                        <span id="todayChecks" style="font-weight: 700; color: #667eea;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-top: 4px;">
+                        <span>Kalan Limit:</span>
+                        <span id="remainingChecks" style="font-weight: 700; color: #28a745;">80</span>
+                    </div>
+                </div>
+
+                <!-- Sıfırla Butonu -->
+                <button onclick="resetSettings()" style="
+                    width: 100%;
+                    margin-top: 10px;
+                    padding: 8px;
+                    background: #6c757d;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">
+                    🔄 Varsayılan Ayarlara Dön
+                </button>
+
+            </div>
+        </div>
+
+        <!-- TAKİP LİSTESİ -->
+        <div id="trackedListContainer">
+            <div class="section-title">📋 Takip Listem</div>
+
+            <!-- Export / Import -->
+            <div class="data-actions">
+                <button class="btn btn-export" onclick="exportData()">
+                    📤 Listeyi Dışa Aktar
+                </button>
+                <button class="btn btn-import">
+                    📥 Listeyi İçe Aktar
+                    <input type="file" accept=".json" onchange="importData(event)">
+                </button>
+            </div>
+
+            <div id="trackedList"></div>
+        </div>
+
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
