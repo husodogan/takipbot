@@ -1,19 +1,19 @@
 // =============================================
-// AMAZON FİYAT TAKİP - BACKGROUND SERVICE WORKER (V3.0 - SAFE)
-// Anti-Ban Korumalı Versiyon
+// AMAZON FİYAT TAKİP - BACKGROUND SERVICE WORKER (V3.1 - SAFE)
+// Anti-Ban Korumalı Versiyon + CAPTCHA İyileştirmesi
 // =============================================
 
 const ICON_URL = chrome.runtime.getURL('icon.png');
 
 // ✅ SAFE MODE: Anti-Ban Ayarları
 const ANTI_BAN = {
-    minCheckInterval: 15,        // Minimum 15 dakika
-    pageLoadWait: 5000,          // Sayfa yükleme bekleme
-    randomDelayMin: 10000,       // Min rastgele gecikme (10sn)
-    randomDelayMax: 40000,       // Max rastgele gecikme (40sn)
-    maxDailyChecks: 80,          // Günlük max kontrol sayısı
-    maxRetries: 2,               // Max yeniden deneme
-    quietHours: { start: 0, end: 7 },  // Gece modu (00:00-07:00)
+    minCheckInterval: 1,             // Kullanıcı kararı (uyarı ile)
+    pageLoadWait: 5000,
+    randomDelayMin: 10000,
+    randomDelayMax: 40000,
+    maxDailyChecks: 80,
+    maxRetries: 2,
+    quietHours: { start: 0, end: 7 },
     userAgents: [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -25,7 +25,7 @@ const ANTI_BAN = {
 const KEEP_ALIVE_ALARM = 'keepAliveAlarm';
 
 chrome.alarms.create(KEEP_ALIVE_ALARM, {
-    periodInMinutes: 0.4 // 24 saniyede bir
+    periodInMinutes: 0.4
 });
 
 // =============================================
@@ -33,7 +33,7 @@ chrome.alarms.create(KEEP_ALIVE_ALARM, {
 // =============================================
 
 chrome.runtime.onInstalled.addListener(() => {
-    console.log('🚀 Amazon Fiyat Takipçisi V3.0 (Safe Mode) yüklendi');
+    console.log('🚀 Amazon Fiyat Takipçisi V3.1 (Safe Mode) yüklendi');
     loadAndStartTracking();
     createOffscreenDocument();
 });
@@ -44,7 +44,7 @@ chrome.runtime.onStartup.addListener(() => {
     createOffscreenDocument();
 });
 
-// ✅ Offscreen document oluştur (keep-alive için)
+// ✅ Offscreen document oluştur
 async function createOffscreenDocument() {
     try {
         const existingContexts = await chrome.runtime.getContexts({
@@ -59,7 +59,7 @@ async function createOffscreenDocument() {
         });
         console.log('✅ Offscreen document oluşturuldu');
     } catch (e) {
-        // Offscreen zaten varsa hata vermesi normal
+        // Zaten varsa hata vermesi normal
     }
 }
 
@@ -85,7 +85,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
     
-    // ✅ YENİ: Ayarları güncelle
     if (request.action === 'updateSettings') {
         console.log('⚙️ Ayarlar güncellendi:', request.settings);
         sendResponse({ success: true });
@@ -100,14 +99,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // =============================================
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-    // Keep alive alarmı
     if (alarm.name === KEEP_ALIVE_ALARM) {
         console.log('💓 Keep-alive:', new Date().toLocaleTimeString('tr-TR'));
         await createOffscreenDocument();
         return;
     }
 
-    // Ürün takip alarmları
     if (alarm.name.startsWith('track_')) {
         const productId = alarm.name.replace('track_', '');
         const result = await chrome.storage.local.get(['trackedProducts']);
@@ -145,26 +142,21 @@ async function loadAndStartTracking() {
 }
 
 function startProductTracking(product) {
-    // Eski alarmı temizle
     stopProductTracking(product.id);
     
     const variantText = product.variant ? ` (${product.variant})` : '';
     console.log(`✅ Takip başladı: ${product.title.substring(0, 30)}${variantText}`);
     
-    // ✅ Minimum aralık kontrolü
-    const intervalMinutes = Math.max(
-        product.checkInterval || 15, 
-        ANTI_BAN.minCheckInterval
-    );
+    // ✅ Kullanıcının seçtiği aralığı kullan
+    const intervalMinutes = Math.max(product.checkInterval || 15, 1);
     
-    if (product.checkInterval < ANTI_BAN.minCheckInterval) {
-        console.warn(`⚠️ Kontrol aralığı ${ANTI_BAN.minCheckInterval} dakikaya yükseltildi (Ban koruması)`);
+    // ⚠️ Sadece uyarı (zorlamaz)
+    if (product.checkInterval < 15) {
+        console.warn(`⚠️ DİKKAT: ${product.checkInterval} dakika çok kısa - ban riski var!`);
     }
     
-    // İlk kontrolü hemen yap
     setTimeout(() => safeCheckPrice(product), 3000);
     
-    // Periyodik kontroller için alarm kur
     chrome.alarms.create(`track_${product.id}`, {
         delayInMinutes: intervalMinutes,
         periodInMinutes: intervalMinutes
@@ -182,7 +174,6 @@ function stopProductTracking(productId) {
 
 async function safeCheckPrice(product) {
     try {
-        // ✅ Ayarları yükle
         const result = await chrome.storage.local.get(['appSettings']);
         const settings = result.appSettings || {
             nightMode: true,
@@ -190,7 +181,7 @@ async function safeCheckPrice(product) {
             randomDelay: true
         };
         
-        // ✅ Gece saati kontrolü (eğer aktifse)
+        // Gece saati kontrolü
         if (settings.nightMode) {
             const hour = new Date().getHours();
             if (hour >= ANTI_BAN.quietHours.start && hour < ANTI_BAN.quietHours.end) {
@@ -199,7 +190,7 @@ async function safeCheckPrice(product) {
             }
         }
         
-        // ✅ Günlük limit kontrolü (ayarlardan al)
+        // Günlük limit kontrolü
         const today = new Date().toDateString();
         const checksResult = await chrome.storage.local.get(['dailyChecks']);
         let checks = checksResult.dailyChecks || { date: today, count: 0 };
@@ -217,7 +208,7 @@ async function safeCheckPrice(product) {
         checks.count++;
         await chrome.storage.local.set({ dailyChecks: checks });
         
-        // ✅ Rastgele gecikme (eğer aktifse)
+        // Rastgele gecikme
         if (settings.randomDelay) {
             const randomDelay = Math.floor(
                 Math.random() * (ANTI_BAN.randomDelayMax - ANTI_BAN.randomDelayMin) + 
@@ -227,7 +218,6 @@ async function safeCheckPrice(product) {
             await new Promise(resolve => setTimeout(resolve, randomDelay));
         }
         
-        // ✅ Fiyat kontrolü yap
         await checkProductPriceSafe(product);
         
     } catch (error) {
@@ -235,10 +225,9 @@ async function safeCheckPrice(product) {
     }
 }
 
-// ✅ Fetch ile fiyat kontrolü (sekme açmadan)
+// ✅ Fetch ile fiyat kontrolü
 async function checkProductPriceSafe(product) {
     try {
-        // Rastgele User-Agent seç
         const userAgent = ANTI_BAN.userAgents[
             Math.floor(Math.random() * ANTI_BAN.userAgents.length)
         ];
@@ -265,7 +254,7 @@ async function checkProductPriceSafe(product) {
         
         if (!response.ok) {
             if (response.status === 503) {
-                console.warn('⚠️ Amazon bot koruması aktif - kontrol atlandı');
+                console.warn('⚠️ Amazon bot koruması aktif (503) - kontrol atlandı');
                 return;
             }
             throw new Error(`HTTP ${response.status}`);
@@ -273,10 +262,29 @@ async function checkProductPriceSafe(product) {
         
         const html = await response.text();
         
-        // CAPTCHA kontrolü
-        if (html.includes('captcha') || html.includes('robot')) {
-            console.warn('🤖 CAPTCHA tespit edildi - sekme açılıyor (manuel çözüm gerekli)');
-            await chrome.tabs.create({ url: product.url, active: true });
+        // ✅ CAPTCHA kontrolü (iyileştirilmiş)
+        if (html.toLowerCase().includes('captcha') || 
+            html.toLowerCase().includes('robot') || 
+            html.includes('Type the characters you see in this image')) {
+            
+            console.warn(`🤖 CAPTCHA tespit edildi: ${product.title.substring(0, 30)}`);
+            
+            // Bildirim gönder
+            chrome.notifications.create(`captcha-${product.id}`, {
+                type: 'basic',
+                iconUrl: ICON_URL,
+                title: '🤖 CAPTCHA Tespit Edildi',
+                message: `Amazon güvenlik kontrolü istiyor.\n\n${product.title.substring(0, 50)}...\n\nLütfen sayfayı açıp CAPTCHA'yı çözün.`,
+                buttons: [{ title: 'Sayfayı Aç' }],
+                priority: 2,
+                requireInteraction: true
+            });
+            
+            // Notification verisini sakla
+            await chrome.storage.local.set({
+                [`notification_captcha-${product.id}`]: { productUrl: product.url }
+            });
+            
             return;
         }
         
@@ -289,10 +297,8 @@ async function checkProductPriceSafe(product) {
         
         console.log(`💰 Fiyat: ${priceData.price} TL (Kaynak: ${priceData.source})`);
         
-        // Fiyatı güncelle
         await updateProductPrice(product.id, priceData.price, priceData.source);
         
-        // ✅ Hedef fiyat kontrolü
         if (priceData.price <= product.targetPrice) {
             console.log(`🎉 HEDEF FİYATA ULAŞILDI!`);
             await handlePriceTarget(product, priceData.price, priceData.source);
@@ -301,7 +307,6 @@ async function checkProductPriceSafe(product) {
     } catch (error) {
         console.error(`❌ Fiyat kontrol hatası: ${error.message}`);
         
-        // Hata durumunda fallback: Sekme aç
         if (error.message.includes('Failed to fetch')) {
             console.log('🔄 Fallback: Sekme ile kontrol ediliyor...');
             await checkProductPriceWithTab(product);
@@ -309,7 +314,6 @@ async function checkProductPriceSafe(product) {
     }
 }
 
-// ✅ HTML'den fiyat parse et
 function parsePriceFromHTML(html, includeUsed = false) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -317,7 +321,6 @@ function parsePriceFromHTML(html, includeUsed = false) {
     let bestPrice = 0;
     let source = 'normal';
     
-    // Yeni ürün fiyatı
     const selectors = [
         '.a-price[data-a-color="price"] .a-offscreen',
         '.a-price .a-offscreen',
@@ -341,7 +344,6 @@ function parsePriceFromHTML(html, includeUsed = false) {
         }
     }
     
-    // ✅ 2. El fiyatı (eğer aktifse)
     if (includeUsed) {
         const usedSelectors = [
             '#usedAccordionRow .a-price .a-offscreen',
@@ -368,7 +370,6 @@ function parsePriceFromHTML(html, includeUsed = false) {
     return { price: bestPrice, source };
 }
 
-// ✅ Fallback: Sekme ile kontrol (fetch başarısızsa)
 async function checkProductPriceWithTab(product) {
     let tabId = null;
     
@@ -473,7 +474,6 @@ async function updateProductPrice(productId, newPrice, source = 'normal') {
             products[productIndex].priceSource = source;
             products[productIndex].lastChecked = new Date().toISOString();
             
-            // Fiyat geçmişi
             if (!products[productIndex].priceHistory) {
                 products[productIndex].priceHistory = [];
             }
@@ -483,7 +483,7 @@ async function updateProductPrice(productId, newPrice, source = 'normal') {
                 date: new Date().toISOString()
             });
             products[productIndex].priceHistory = 
-                products[productIndex].priceHistory.slice(0, 20); // Son 20 kayıt
+                products[productIndex].priceHistory.slice(0, 20);
             
             await chrome.storage.local.set({ trackedProducts: products });
         }
@@ -512,13 +512,11 @@ async function handlePriceTarget(product, currentPrice, source) {
             await chrome.storage.local.set({ trackedProducts: products });
         }
         
-        // ✅ Kullanıcıya sekme aç
         const tab = await chrome.tabs.create({ 
             url: product.url, 
             active: true 
         });
         
-        // ✅ Bildirim (Butonlu - Kullanıcı karar verir)
         const sourceText = source === 'used' ? ' ♻️ 2.El' : '';
         const notifId = `price-${product.id}-${Date.now()}`;
         
@@ -534,7 +532,6 @@ async function handlePriceTarget(product, currentPrice, source) {
             requireInteraction: true
         });
         
-        // Bildirim verilerini sakla (buton click için)
         await chrome.storage.local.set({
             [`notification_${notifId}`]: {
                 productUrl: product.url,
@@ -550,31 +547,28 @@ async function handlePriceTarget(product, currentPrice, source) {
 // ✅ Bildirim butonuna tıklama
 chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
     if (buttonIndex === 0) {
-        // Sepete git butonu
         const key = `notification_${notificationId}`;
         const result = await chrome.storage.local.get([key]);
         const data = result[key];
         
-        if (data && data.tabId) {
-            try {
-                // Mevcut sekmeyi aktif et
-                await chrome.tabs.update(data.tabId, { active: true });
-            } catch {
-                // Sekme kapatılmışsa yeni aç
-                chrome.tabs.create({ 
-                    url: 'https://www.amazon.com.tr/gp/cart/view.html' 
-                });
+        if (data) {
+            if (data.tabId) {
+                try {
+                    await chrome.tabs.update(data.tabId, { active: true });
+                } catch {
+                    chrome.tabs.create({ url: data.productUrl || 'https://www.amazon.com.tr/gp/cart/view.html' });
+                }
+            } else if (data.productUrl) {
+                chrome.tabs.create({ url: data.productUrl });
             }
         }
         
-        // Notification verisini temizle
         chrome.storage.local.remove([key]);
     }
     
     chrome.notifications.clear(notificationId);
 });
 
-// ✅ Bildirime tıklama (genel)
 chrome.notifications.onClicked.addListener(async (notificationId) => {
     const key = `notification_${notificationId}`;
     const result = await chrome.storage.local.get([key]);
@@ -588,4 +582,4 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
     chrome.storage.local.remove([key]);
 });
 
-console.log('✅ Background script hazır (Safe Mode aktif)');
+console.log('✅ Background script hazır (Safe Mode + CAPTCHA Handler aktif)');
