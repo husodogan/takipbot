@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     checkCurrentPage();
     loadSettings();
     updateStats();
+    
+    // ✅ Ayarlar toggle event listener
+    const settingsToggle = document.getElementById('settingsToggle');
+    if (settingsToggle) {
+        settingsToggle.addEventListener('click', toggleSettings);
+    }
 });
 
 // =============================================
@@ -134,6 +140,14 @@ async function addProduct(data) {
         showToast('⚠️ Lütfen geçerli bir hedef fiyat girin!', 'warning');
         targetInput.focus();
         return;
+    }
+
+    // ✅ Kısa aralık uyarısı
+    if (interval < 15) {
+        const confirmed = window.confirm(
+            `⚠️ DİKKAT!\n\n${interval} dakikalık kontrol aralığı çok kısa!\n\nAmazon hesabınız yasaklanabilir.\n\nÖnerilen minimum: 15 dakika\n\nYine de devam etmek istiyor musunuz?`
+        );
+        if (!confirmed) return;
     }
 
     if (target >= data.price) {
@@ -294,11 +308,15 @@ function renderProductCard(p) {
                     <div style="flex:1;">
                         <label style="font-size:11px; font-weight:600;">⏱️ Kontrol Aralığı:</label>
                         <select id="interval-${p.id}">
-                            <option value="15"  ${p.checkInterval==15?'selected':''}>15 dk</option>
-                            <option value="20"  ${p.checkInterval==20?'selected':''}>20 dk</option>
-                            <option value="30"  ${p.checkInterval==30?'selected':''}>30 dk</option>
-                            <option value="45"  ${p.checkInterval==45?'selected':''}>45 dk</option>
-                            <option value="60"  ${p.checkInterval==60?'selected':''}>1 saat</option>
+                            <option value="1"  ${p.checkInterval==1?'selected':''}>1 dk ⚠️</option>
+                            <option value="3"  ${p.checkInterval==3?'selected':''}>3 dk ⚠️</option>
+                            <option value="5"  ${p.checkInterval==5?'selected':''}>5 dk ⚠️</option>
+                            <option value="10" ${p.checkInterval==10?'selected':''}>10 dk</option>
+                            <option value="15" ${p.checkInterval==15?'selected':''}>15 dk ✅</option>
+                            <option value="20" ${p.checkInterval==20?'selected':''}>20 dk</option>
+                            <option value="30" ${p.checkInterval==30?'selected':''}>30 dk</option>
+                            <option value="45" ${p.checkInterval==45?'selected':''}>45 dk</option>
+                            <option value="60" ${p.checkInterval==60?'selected':''}>1 saat</option>
                             <option value="120" ${p.checkInterval==120?'selected':''}>2 saat</option>
                             <option value="180" ${p.checkInterval==180?'selected':''}>3 saat</option>
                             <option value="360" ${p.checkInterval==360?'selected':''}>6 saat</option>
@@ -363,6 +381,14 @@ function attachEventListeners() {
             if (!newPrice || newPrice <= 0) {
                 showToast('⚠️ Geçerli bir fiyat girin!', 'warning');
                 return;
+            }
+
+            // ✅ Kısa aralık uyarısı (düzenlemede de)
+            if (newInterval < 15) {
+                const confirmed = window.confirm(
+                    `⚠️ DİKKAT!\n\n${newInterval} dakikalık kontrol aralığı çok kısa!\n\nAmazon hesabınız yasaklanabilir.\n\nÖnerilen minimum: 15 dakika\n\nYine de devam etmek istiyor musunuz?`
+                );
+                if (!confirmed) return;
             }
 
             await updateProduct(id, newPrice, newUsed, newAuto, newInterval);
