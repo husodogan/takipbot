@@ -1,12 +1,10 @@
 // =============================================
-// AMAZON FİYAT TAKİP - CONTENT SCRIPT (V2.3)
+// AMAZON FİYAT TAKİP - CONTENT SCRIPT (V3.1)
 // =============================================
 
 function injectIntegratedButton() {
     if (document.getElementById('at-track-container')) return;
-    const buyBox = document.querySelector('#rightCol #desktop_buybox') || 
-                   document.querySelector('#buybox') ||
-                   document.querySelector('#desktop_buybox_group_1');
+    const buyBox = document.querySelector('#rightCol #desktop_buybox') || document.querySelector('#buybox');
     if (!buyBox) return;
 
     const div = document.createElement('div');
@@ -14,183 +12,292 @@ function injectIntegratedButton() {
     
     div.innerHTML = `
         <div style="
-            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
-            padding: 12px;
-            border-radius: 10px;
-            border: 2px solid #FF9900;
             margin: 12px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #FF9900;
+            box-shadow: 0 4px 15px rgba(255,153,0,0.15);
+            overflow: hidden;
             font-family: 'Segoe UI', Arial, sans-serif;
         ">
-            <!-- Ana Buton -->
-            <button id="at-main-btn" style="
-                width: 100%;
+            <!-- Başlık Bandı -->
+            <div style="
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                padding: 11px 16px;
-                border-radius: 8px;
-                font-weight: 700;
-                cursor: pointer;
-                font-size: 14px;
-                letter-spacing: 0.3px;
+                padding: 6px 12px;
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                gap: 8px;
-                box-shadow: 0 3px 8px rgba(102, 126, 234, 0.35);
-                transition: all 0.2s ease;
+                gap: 6px;
             ">
-                <span style="font-size:16px;">⭐</span>
-                <span>Takibe Ekle</span>
-            </button>
-
-            <!-- Seçenekler -->
-            <div style="
-                display: flex;
-                gap: 8px;
-                margin-top: 8px;
-            ">
-                <!-- 2.El Dahil -->
-                <label id="at-label-used" style="
-                    flex: 1;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 6px;
-                    padding: 7px 8px;
-                    background: white;
-                    border: 1.5px solid #ddd;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #444;
-                    transition: all 0.2s;
-                    user-select: none;
-                    white-space: nowrap;
-                ">
-                    <input type="checkbox" id="at-check-used" style="
-                        margin: 0;
-                        width: 14px;
-                        height: 14px;
-                        accent-color: #667eea;
-                        cursor: pointer;
-                        flex-shrink: 0;
-                    ">
-                    <span>♻️ 2.El Dahil</span>
-                </label>
-
-                <!-- Oto Sipariş -->
-                <label id="at-label-auto" style="
-                    flex: 1;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 6px;
-                    padding: 7px 8px;
-                    background: white;
-                    border: 1.5px solid #ddd;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    font-size: 12px;
-                    font-weight: 600;
-                    color: #444;
-                    transition: all 0.2s;
-                    user-select: none;
-                    white-space: nowrap;
-                ">
-                    <input type="checkbox" id="at-check-auto" style="
-                        margin: 0;
-                        width: 14px;
-                        height: 14px;
-                        accent-color: #667eea;
-                        cursor: pointer;
-                        flex-shrink: 0;
-                    ">
-                    <span>🤖 Oto Sipariş</span>
-                </label>
+                <span style="font-size:13px;">⭐</span>
+                <span style="color:white; font-size:12px; font-weight:700; letter-spacing:0.5px;">
+                    AMAZON FİYAT TAKİP
+                </span>
             </div>
 
-            <!-- Durum mesajı alanı -->
-            <div id="at-status-msg" style="display:none; margin-top:8px;"></div>
+            <!-- İçerik -->
+            <div style="padding: 12px;">
+
+                <!-- Fiyat Göstergesi -->
+                <div id="at-price-display" style="
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 8px 12px;
+                    margin-bottom: 10px;
+                    font-size: 12px;
+                    color: #555;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                ">
+                    <span>💰 Güncel Fiyat:</span>
+                    <span id="at-price-val" style="font-weight:700; color:#e74c3c; font-size:14px;">-</span>
+                </div>
+
+                <!-- Hedef Fiyat Input -->
+                <div style="margin-bottom: 10px;">
+                    <div style="
+                        font-size: 11px;
+                        font-weight: 600;
+                        color: #666;
+                        margin-bottom: 5px;
+                    ">🎯 Hedef Fiyat (TL)</div>
+                    <input 
+                        type="number" 
+                        id="at-target-price" 
+                        placeholder="Hedef fiyat girin..."
+                        style="
+                            width: 100%;
+                            padding: 9px 12px;
+                            border: 2px solid #e9ecef;
+                            border-radius: 8px;
+                            font-size: 13px;
+                            outline: none;
+                            box-sizing: border-box;
+                            transition: border-color 0.2s;
+                            font-family: 'Segoe UI', Arial, sans-serif;
+                        "
+                        onfocus="this.style.borderColor='#667eea'"
+                        onblur="this.style.borderColor='#e9ecef'"
+                    >
+                    <!-- Hızlı Seçim Chipleri -->
+                    <div id="at-chips" style="
+                        display: flex;
+                        gap: 5px;
+                        margin-top: 6px;
+                        flex-wrap: wrap;
+                    "></div>
+                </div>
+
+                <!-- Kontrol Aralığı -->
+                <div style="margin-bottom: 10px;">
+                    <div style="
+                        font-size: 11px;
+                        font-weight: 600;
+                        color: #666;
+                        margin-bottom: 5px;
+                    ">⏱️ Kontrol Aralığı</div>
+                    <select id="at-interval" style="
+                        width: 100%;
+                        padding: 9px 12px;
+                        border: 2px solid #e9ecef;
+                        border-radius: 8px;
+                        font-size: 13px;
+                        outline: none;
+                        background: white;
+                        box-sizing: border-box;
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                        cursor: pointer;
+                    ">
+                        <option value="1">Her 1 dakika ⚠️</option>
+                        <option value="3">Her 3 dakika ⚠️</option>
+                        <option value="5">Her 5 dakika ⚠️</option>
+                        <option value="10">Her 10 dakika</option>
+                        <option value="15" selected>Her 15 dakika ✅</option>
+                        <option value="20">Her 20 dakika</option>
+                        <option value="30">Her 30 dakika</option>
+                        <option value="60">Her 1 saat</option>
+                        <option value="120">Her 2 saat</option>
+                        <option value="360">Her 6 saat</option>
+                        <option value="720">Her 12 saat</option>
+                        <option value="1440">Her 24 saat</option>
+                    </select>
+                </div>
+
+                <!-- Checkboxlar -->
+                <div style="
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                ">
+                    <!-- 2. El -->
+                    <label style="
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 9px 12px;
+                        background: #f8f9fa;
+                        border: 2px solid #e9ecef;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        white-space: nowrap;
+                    "
+                    onmouseover="this.style.borderColor='#667eea'; this.style.background='#eef0ff'"
+                    onmouseout="this.style.borderColor='#e9ecef'; this.style.background='#f8f9fa'"
+                    >
+                        <input 
+                            type="checkbox" 
+                            id="at-check-used"
+                            style="
+                                width: 15px;
+                                height: 15px;
+                                margin: 0;
+                                cursor: pointer;
+                                accent-color: #667eea;
+                                flex-shrink: 0;
+                            "
+                        >
+                        <span style="
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: #444;
+                            line-height: 1;
+                        ">♻️ 2.El Dahil</span>
+                    </label>
+
+                    <!-- Oto Sipariş -->
+                    <label style="
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 9px 12px;
+                        background: #f8f9fa;
+                        border: 2px solid #e9ecef;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        white-space: nowrap;
+                    "
+                    onmouseover="this.style.borderColor='#667eea'; this.style.background='#eef0ff'"
+                    onmouseout="this.style.borderColor='#e9ecef'; this.style.background='#f8f9fa'"
+                    >
+                        <input 
+                            type="checkbox" 
+                            id="at-check-auto"
+                            style="
+                                width: 15px;
+                                height: 15px;
+                                margin: 0;
+                                cursor: pointer;
+                                accent-color: #667eea;
+                                flex-shrink: 0;
+                            "
+                        >
+                        <span style="
+                            font-size: 12px;
+                            font-weight: 600;
+                            color: #444;
+                            line-height: 1;
+                        ">🤖 Oto Sipariş</span>
+                    </label>
+                </div>
+
+                <!-- Takibe Ekle Butonu -->
+                <button id="at-main-btn" style="
+                    width: 100%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 13px;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    transition: all 0.2s;
+                    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+                "
+                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(102,126,234,0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.3)'"
+                >
+                    <span style="font-size:16px;">⭐</span>
+                    <span>Takibe Ekle</span>
+                </button>
+
+                <!-- Mesaj Alanı -->
+                <div id="at-message" style="display:none; margin-top:8px;"></div>
+
+            </div>
         </div>
     `;
 
     buyBox.prepend(div);
 
-    // ✅ Checkbox hover efektleri
-    const labelUsed = document.getElementById('at-label-used');
-    const labelAuto = document.getElementById('at-label-auto');
-    const checkUsed = document.getElementById('at-check-used');
-    const checkAuto = document.getElementById('at-check-auto');
+    // Fiyatı göster ve chip'leri oluştur
+    const data = extractProductInfo();
+    if (data.price > 0) {
+        document.getElementById('at-price-val').textContent = `${data.price} TL`;
+        
+        const chips = [
+            { label: '%-5', value: Math.floor(data.price * 0.95) },
+            { label: '%-10', value: Math.floor(data.price * 0.90) },
+            { label: '%-15', value: Math.floor(data.price * 0.85) },
+            { label: '%-20', value: Math.floor(data.price * 0.80) },
+        ];
 
-    function updateLabelStyle(label, checkbox) {
-        if (checkbox.checked) {
-            label.style.borderColor = '#667eea';
-            label.style.background = '#f0f0ff';
-            label.style.color = '#667eea';
-        } else {
-            label.style.borderColor = '#ddd';
-            label.style.background = 'white';
-            label.style.color = '#444';
-        }
+        const chipsContainer = document.getElementById('at-chips');
+        chips.forEach(chip => {
+            const el = document.createElement('span');
+            el.textContent = `${chip.label} → ${chip.value}₺`;
+            el.style.cssText = `
+                font-size: 10px;
+                padding: 3px 8px;
+                background: #eef0ff;
+                border: 1px solid #667eea;
+                border-radius: 12px;
+                cursor: pointer;
+                color: #667eea;
+                font-weight: 600;
+                transition: all 0.2s;
+                white-space: nowrap;
+            `;
+            el.onmouseover = () => { el.style.background = '#667eea'; el.style.color = 'white'; };
+            el.onmouseout = () => { el.style.background = '#eef0ff'; el.style.color = '#667eea'; };
+            el.onclick = () => {
+                document.getElementById('at-target-price').value = chip.value;
+            };
+            chipsContainer.appendChild(el);
+        });
     }
 
-    checkUsed.addEventListener('change', () => updateLabelStyle(labelUsed, checkUsed));
-    checkAuto.addEventListener('change', () => updateLabelStyle(labelAuto, checkAuto));
-
-    // Hover efektleri
-    [labelUsed, labelAuto].forEach(label => {
-        label.addEventListener('mouseenter', () => {
-            if (!label.querySelector('input').checked) {
-                label.style.borderColor = '#aaa';
-                label.style.background = '#fafafa';
-            }
-        });
-        label.addEventListener('mouseleave', () => {
-            updateLabelStyle(label, label.querySelector('input'));
-        });
-    });
-
-    // ✅ Buton hover efekti
-    const mainBtn = document.getElementById('at-main-btn');
-    mainBtn.addEventListener('mouseenter', () => {
-        mainBtn.style.transform = 'translateY(-1px)';
-        mainBtn.style.boxShadow = '0 5px 12px rgba(102, 126, 234, 0.45)';
-    });
-    mainBtn.addEventListener('mouseleave', () => {
-        mainBtn.style.transform = 'translateY(0)';
-        mainBtn.style.boxShadow = '0 3px 8px rgba(102, 126, 234, 0.35)';
-    });
-
-    // ✅ Takibe ekleme
-    mainBtn.addEventListener('click', async () => {
-        // Buton loading durumu
-        mainBtn.innerHTML = '<span style="font-size:14px;">⏳</span> <span>Ekleniyor...</span>';
-        mainBtn.style.opacity = '0.7';
-        mainBtn.style.pointerEvents = 'none';
-
+    // Buton click
+    document.getElementById('at-main-btn').addEventListener('click', async () => {
         const data = extractProductInfo();
-        const includeUsed = checkUsed.checked;
-        const autoOrder = checkAuto.checked;
+        const targetPrice = parseFloat(document.getElementById('at-target-price').value);
+        const includeUsed = document.getElementById('at-check-used').checked;
+        const autoOrder = document.getElementById('at-check-auto').checked;
+        const interval = parseInt(document.getElementById('at-interval').value) || 15;
+
+        if (!targetPrice || targetPrice <= 0) {
+            showMessage('at-message', '⚠️ Lütfen hedef fiyat girin!', 'warning');
+            return;
+        }
 
         const storage = await chrome.storage.local.get(['trackedProducts']);
         let products = storage.trackedProducts || [];
 
-        // Aynı ürün kontrolü
-        const existing = products.find(p => p.url === data.url && p.status === 'active');
+        const existing = products.find(p => 
+            p.url === data.url && p.status === 'active'
+        );
+        
         if (existing) {
-            mainBtn.innerHTML = '<span style="font-size:14px;">⚠️</span> <span>Zaten Takipte</span>';
-            mainBtn.style.background = 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)';
-            mainBtn.style.color = '#333';
-            mainBtn.style.opacity = '1';
-            
-            showStatusMsg('Bu ürün zaten takip listenizde!', '#856404', '#fff3cd');
-
-            setTimeout(() => {
-                resetButton(mainBtn);
-            }, 3000);
+            showMessage('at-message', '⚠️ Bu ürün zaten takipte!', 'warning');
             return;
         }
 
@@ -200,76 +307,33 @@ function injectIntegratedButton() {
             title: data.title,
             image: data.image,
             currentPrice: data.price,
-            targetPrice: Math.floor(data.price * 0.90),
+            targetPrice: targetPrice,
             includeUsed: includeUsed,
             autoOrder: autoOrder,
-            checkInterval: 5,
+            checkInterval: interval,
             status: 'active',
-            variant: data.variant,
-            addedAt: new Date().toISOString(),
-            priceHistory: [{
-                price: data.price,
-                source: 'normal',
-                date: new Date().toISOString()
-            }]
+            variant: data.variant || null,
+            addedAt: new Date().toISOString()
         };
 
         products.push(newProd);
         await chrome.storage.local.set({ trackedProducts: products });
         chrome.runtime.sendMessage({ action: 'startTracking', product: newProd });
 
-        // Başarı durumu
-        mainBtn.innerHTML = '<span style="font-size:14px;">✅</span> <span>Takibe Alındı!</span>';
-        mainBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
-        mainBtn.style.boxShadow = '0 3px 8px rgba(40, 167, 69, 0.35)';
-        mainBtn.style.opacity = '1';
+        const btn = document.getElementById('at-main-btn');
+        btn.style.background = 'linear-gradient(135deg, #28a745 0%, #1e7e34 100%)';
+        btn.style.boxShadow = '0 4px 12px rgba(40,167,69,0.3)';
+        btn.innerHTML = '<span style="font-size:16px;">✅</span><span>Takibe Eklendi!</span>';
+        btn.disabled = true;
 
-        const targetPrice = Math.floor(data.price * 0.90);
-        showStatusMsg(
-            `✅ Hedef: ${targetPrice} TL | Kontrol: 5 dk | Popup'tan düzenleyebilirsiniz`,
-            '#155724', '#d4edda'
-        );
+        showMessage('at-message', '✅ Ürün başarıyla takibe eklendi!', 'success');
     });
 }
 
-// ✅ Durum mesajı göster
-function showStatusMsg(text, color, bg) {
-    const msgDiv = document.getElementById('at-status-msg');
-    if (!msgDiv) return;
-    msgDiv.style.display = 'block';
-    msgDiv.style.cssText = `
-        display: block;
-        margin-top: 8px;
-        padding: 6px 10px;
-        background: ${bg};
-        color: ${color};
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        text-align: center;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        animation: at-fadeIn 0.3s ease;
-    `;
-    msgDiv.textContent = text;
-}
-
-// ✅ Butonu sıfırla
-function resetButton(btn) {
-    btn.innerHTML = '<span style="font-size:16px;">⭐</span> <span>Takibe Ekle</span>';
-    btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    btn.style.boxShadow = '0 3px 8px rgba(102, 126, 234, 0.35)';
-    btn.style.color = 'white';
-    btn.style.opacity = '1';
-    btn.style.pointerEvents = 'auto';
-    
-    const msgDiv = document.getElementById('at-status-msg');
-    if (msgDiv) msgDiv.style.display = 'none';
-}
-
-// ✅ Fiyat çıkartma
 function extractProductInfo() {
     const title = document.querySelector('#productTitle')?.textContent.trim() || 'Ürün';
     
+    // ✅ Ana fiyat (buybox)
     let price = 0;
     const priceSelectors = [
         '.a-price .a-offscreen',
@@ -296,58 +360,208 @@ function extractProductInfo() {
     
     const variant = getSelectedVariant();
     
-    return { url: window.location.href.split('?')[0], title, price, image, variant };
+    // ✅ Tüm satıcıları çek
+    const allSellers = getAllSellerPrices();
+    
+    return { 
+        url: window.location.href.split('?')[0], 
+        title, 
+        price, 
+        image,
+        variant,
+        sellers: allSellers  // ✅ YENİ
+    };
 }
 
-// ✅ Varyant bilgisi
 function getSelectedVariant() {
     const variants = [];
-    const selectors = [
-        '#variation_color_name .selection',
-        '#variation_size_name .selection',
-        '#variation_style_name .selection'
-    ];
-    selectors.forEach(sel => {
-        const elem = document.querySelector(sel);
-        if (elem) variants.push(elem.textContent.trim());
-    });
+    
+    const colorElem = document.querySelector('#variation_color_name .selection');
+    if (colorElem) variants.push(colorElem.textContent.trim());
+    
+    const sizeElem = document.querySelector('#variation_size_name .selection');
+    if (sizeElem) variants.push(sizeElem.textContent.trim());
+    
+    const styleElem = document.querySelector('#variation_style_name .selection');
+    if (styleElem) variants.push(styleElem.textContent.trim());
+    
     return variants.length > 0 ? variants.join(' - ') : null;
 }
 
-// ✅ 2. El fiyat
 function getUsedPrice() {
+    // ✅ Tüm 2. el fiyatları
+    const usedPrices = [];
+    
     const usedBox = document.querySelector('#usedAccordionRow .a-price .a-offscreen');
     if (usedBox) {
-        const price = parseFloat(usedBox.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
-        return price > 0 ? price : null;
+        const text = usedBox.textContent;
+        const price = parseFloat(text.replace(/[^\d,]/g, '').replace(',', '.'));
+        if (price > 0) usedPrices.push(price);
     }
-    return null;
+    
+    // En düşüğünü döndür
+    return usedPrices.length > 0 ? Math.min(...usedPrices) : null;
 }
 
-// ✅ Sepete ekle
+// ✅ Sepete ekleme fonksiyonu
 async function addToCart() {
     try {
-        const buttons = ['#add-to-cart-button', '#buy-now-button', 'input[name="submit.add-to-cart"]'];
-        for (let sel of buttons) {
-            const btn = document.querySelector(sel);
-            if (btn && !btn.disabled) { btn.click(); return true; }
+        const addButtons = [
+            '#add-to-cart-button',
+            '#buy-now-button', 
+            'input[name="submit.add-to-cart"]',
+            '#addToCart'
+        ];
+        
+        for (let selector of addButtons) {
+            const btn = document.querySelector(selector);
+            if (btn && !btn.disabled) {
+                btn.click();
+                console.log('✅ Sepete ekleme butonu tıklandı');
+                return true;
+            }
         }
+        
+        console.warn('⚠️ Sepete ekleme butonu bulunamadı');
         return false;
-    } catch (e) { return false; }
+    } catch (error) {
+        console.error('❌ Sepete ekleme hatası:', error);
+        return false;
+    }
 }
 
-// ✅ Checkout
+function getAllSellerPrices() {
+    const sellers = [];
+    
+    try {
+        // ✅ 1. Buybox'taki satıcı
+        const buyboxSeller = document.querySelector('#sellerProfileTriggerId')?.textContent.trim() ||
+                            document.querySelector('#bylineInfo')?.textContent.trim() ||
+                            'Amazon';
+        
+        const buyboxPrice = parseFloat(
+            (document.querySelector('.a-price .a-offscreen')?.textContent || '0')
+            .replace(/[^\d,]/g, '').replace(',', '.')
+        );
+        
+        if (buyboxPrice > 0) {
+            sellers.push({
+                name: buyboxSeller,
+                price: buyboxPrice,
+                type: 'new',
+                isBuybox: true
+            });
+        }
+        
+        // ✅ 2. "Diğer Satıcılar" bölümü
+        const otherSellersLink = document.querySelector('#mbc-sold-by-line a[href*="offer-listing"]');
+        if (otherSellersLink) {
+            // Burada manuel olarak link'e tıklamadan fiyatları çekemeyiz
+            // Ama link var, bu bilgiyi saklayalım
+            sellers.push({
+                name: 'Diğer Satıcılar Mevcut',
+                price: 0,
+                type: 'other',
+                link: otherSellersLink.href
+            });
+        }
+        
+        // ✅ 3. 2. El ürünler
+        const usedAccordion = document.querySelector('#usedAccordionRow');
+        if (usedAccordion) {
+            const usedPriceText = usedAccordion.querySelector('.a-price .a-offscreen')?.textContent || '';
+            const usedPrice = parseFloat(usedPriceText.replace(/[^\d,]/g, '').replace(',', '.'));
+            
+            if (usedPrice > 0) {
+                sellers.push({
+                    name: '2. El Satıcılar',
+                    price: usedPrice,
+                    type: 'used',
+                    isBuybox: false
+                });
+            }
+        }
+        
+        // ✅ 4. "Fiyat Öneri Özeti" bölümü (varsa)
+        const offerSummary = document.querySelectorAll('#aod-offer-list .aod-offer');
+        offerSummary.forEach((offer, index) => {
+            const sellerName = offer.querySelector('.a-size-small.a-color-base')?.textContent.trim() || `Satıcı ${index + 1}`;
+            const priceText = offer.querySelector('.a-price .a-offscreen')?.textContent || '';
+            const price = parseFloat(priceText.replace(/[^\d,]/g, '').replace(',', '.'));
+            
+            if (price > 0) {
+                sellers.push({
+                    name: sellerName,
+                    price: price,
+                    type: 'new',
+                    isBuybox: false
+                });
+            }
+        });
+        
+        console.log('📊 Bulunan satıcılar:', sellers);
+        
+    } catch (e) {
+        console.warn('Satıcı bilgisi alınamadı:', e);
+    }
+    
+    return sellers;
+}
+
+// ✅ Ödeme sayfasına git
 async function proceedToCheckout() {
     try {
-        await new Promise(r => setTimeout(r, 2000));
-        const buttons = ['#hlb-ptc-btn-native', '#sc-buy-box-ptc-button', 'input[name="proceedToRetailCheckout"]'];
-        for (let sel of buttons) {
-            const btn = document.querySelector(sel);
-            if (btn) { btn.click(); return true; }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const checkoutButtons = [
+            '#hlb-ptc-btn-native',
+            '#sc-buy-box-ptc-button',
+            'input[name="proceedToRetailCheckout"]',
+            'a[href*="checkout"]'
+        ];
+        
+        for (let selector of checkoutButtons) {
+            const btn = document.querySelector(selector);
+            if (btn) {
+                btn.click();
+                console.log('✅ Ödeme sayfasına yönlendiriliyor');
+                return true;
+            }
         }
+        
         window.location.href = 'https://www.amazon.com.tr/gp/cart/view.html';
         return true;
-    } catch (e) { return false; }
+    } catch (error) {
+        console.error('❌ Checkout hatası:', error);
+        return false;
+    }
+}
+
+function showMessage(elementId, text, type) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    const colors = {
+        success: { bg: '#d4edda', border: '#c3e6cb', color: '#155724' },
+        warning: { bg: '#fff3cd', border: '#ffeeba', color: '#856404' },
+        error:   { bg: '#f8d7da', border: '#f5c6cb', color: '#721c24' }
+    };
+
+    const c = colors[type] || colors.success;
+    el.style.cssText = `
+        display: block;
+        padding: 8px 12px;
+        background: ${c.bg};
+        border: 1px solid ${c.border};
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: ${c.color};
+        text-align: center;
+    `;
+    el.textContent = text;
+
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
 // ✅ Mesaj dinleyici
@@ -355,21 +569,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'getProductInfo') {
         try {
             const data = extractProductInfo();
-            sendResponse({ success: true, data: { ...data, usedPrice: getUsedPrice() } });
+            const usedPrice = getUsedPrice();
+            sendResponse({ 
+                success: true, 
+                data: {
+                    ...data,
+                    usedPrice: usedPrice
+                }
+            });
         } catch (error) {
             sendResponse({ success: false, error: error.message });
         }
     }
+    
     if (request.action === 'addToCart') {
-        addToCart().then(success => sendResponse({ success }));
+        addToCart().then(success => {
+            sendResponse({ success });
+        });
         return true;
     }
+    
     if (request.action === 'checkout') {
-        proceedToCheckout().then(success => sendResponse({ success }));
+        proceedToCheckout().then(success => {
+            sendResponse({ success });
+        });
         return true;
     }
+    
     return true;
 });
 
-// ✅ Sayfa yüklenince butonu ekle
 setTimeout(injectIntegratedButton, 1500);
